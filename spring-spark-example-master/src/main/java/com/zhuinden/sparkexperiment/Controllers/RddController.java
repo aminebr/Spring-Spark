@@ -20,7 +20,7 @@ public class RddController {
 
 
 
-    private static String UPLOADED_FOLDER = "C://temptest//";
+    final String UPLOADED_FOLDER = "C://temptest//";
 
 
 

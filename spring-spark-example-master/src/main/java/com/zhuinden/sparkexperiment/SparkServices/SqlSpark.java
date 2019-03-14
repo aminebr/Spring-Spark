@@ -11,7 +11,9 @@ import org.springframework.stereotype.Component;
 import scala.Tuple2;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -75,31 +77,41 @@ public class SqlSpark {
         Dataset<Row> original_csv = sparkSession.read().format("csv").option("header","true").load("C://temptest//" + id +".csv");
         String original_csv_header_schema[] = original_csv.schema().fieldNames();
 
-        String colnames ="";
-        boolean merge_is_possible = true ;
-        int i = 0 ;
-        for( String col : original_csv_header_schema){
-            if(!merge_csv_header_schema[i].equals(col)) {
-                merge_is_possible = false ;
-                break;
+        String original_colnames ="";
+        String merge_colnames ="";
+
+        Map<Integer,Integer> columns_mapping  = new HashMap<>();
+
+
+        for (int i = 0 ; i < merge_csv_header_schema.length ; i++){
+            boolean found = false ;
+
+            for (int j = 0 ; j < original_csv_header_schema.length ; j++){
+                if(original_csv_header_schema[i].equals(merge_csv_header_schema[j])){
+                    found = true ;
+                    columns_mapping.put(i,j);
+                    break;
+                }
             }
-            i++;
-
+            if (found == false ) return;
         }
-        for(int j = 0 ; j < i-1 ;j++){
-            colnames +="original."+ merge_csv_header_schema[j] + ", ";
-        }
-        colnames +="original."+merge_csv_header_schema[i-1];
 
-        if(merge_is_possible == true) System.out.println("merge is possible");
+        for (int i = 0 ; i < original_csv_header_schema.length-1 ; i++){
+            merge_colnames +="merge."+ merge_csv_header_schema[i] + ", ";
+            original_colnames +="original."+ merge_csv_header_schema[columns_mapping.get(i)] + ", ";
+        }
+
+        original_colnames +="original."+ original_csv_header_schema[columns_mapping.get(merge_csv_header_schema.length-1)];
+        merge_colnames +="merge."+ merge_csv_header_schema[merge_csv_header_schema.length-1];
+
 
 
         original_csv.createOrReplaceTempView("original");
         merge_csv.createOrReplaceTempView("merge");
 
-        Dataset<Row> result= sparkSession.sql("SELECT * FROM merge UNION (select * from original where ID NOT IN (select ID from merge)) ");
+        Dataset<Row> result= sparkSession.sql("SELECT "+merge_colnames+" FROM merge UNION (select "+original_colnames+" from original where ID NOT IN (select ID from merge)) ");
         System.out.println(result.count());
-        //result.coalesce(1).write().option("header", "true").csv("C://temptest//" + 3 +".csv");
+        result.coalesce(1).write().option("header", "true").csv("C://temptest//" + 3 +".csv");
 
     }
 
