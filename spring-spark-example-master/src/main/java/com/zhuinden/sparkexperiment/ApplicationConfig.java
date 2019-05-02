@@ -38,6 +38,7 @@ public class ApplicationConfig {
                 .setAppName(appName)
                 .setSparkHome(sparkHome)
                 .set("spark.testing.memory", "471859200")
+                .set("spark.scheduler.mode", "FAIR")
                 .setMaster(masterUri);
 
         return sparkConf;
@@ -53,6 +54,7 @@ public class ApplicationConfig {
         return SparkSession
                 .builder()
                 .sparkContext(javaSparkContext().sc())
+
                 .appName("Java Spark SQL basic example")
                 .getOrCreate();
     }

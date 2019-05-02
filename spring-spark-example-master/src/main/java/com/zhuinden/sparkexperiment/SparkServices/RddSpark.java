@@ -63,10 +63,10 @@ public class RddSpark {
     }
 
 
-    public JavaRDD<String> readCsvFile(String inputFile){
+    public JavaRDD<String> readCsvFile(JavaSparkContext sc ,String inputFile){
 
 
-        JavaSparkContext sc = new  JavaSparkContext(sparkSession.sparkContext());
+
          MinAccumulator acc = new MinAccumulator();
          sc.sc().register(acc);
 
