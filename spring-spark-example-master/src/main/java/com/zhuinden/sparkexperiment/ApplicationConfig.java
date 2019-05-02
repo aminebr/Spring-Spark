@@ -37,6 +37,7 @@ public class ApplicationConfig {
         SparkConf sparkConf = new SparkConf()
                 .setAppName(appName)
                 .setSparkHome(sparkHome)
+                .set("spark.testing.memory", "471859200")
                 .setMaster(masterUri);
 
         return sparkConf;
